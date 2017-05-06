@@ -11,7 +11,6 @@
 #include <sys/wait.h>
 #include <sys/errno.h>
 #include <errno.h>
-#include <limit.h>
 #include <sys/inotify.h>
 
 #define N_NS 3
