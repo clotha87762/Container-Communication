@@ -54,12 +54,13 @@ int main(int argc, char *argv[])
 	msgqid = msgget(5566,0600|IPC_CREAT); // Shall we add IPC_EXCL?
 	tmp1 = -1;
 	tmp2 = -1;
+	printf("aaa\n");
 	while(1){
 		
 		tmp1 = msgrcv(msgqid,&msg,sizeof(msg.mtext),0,0);
 		if(tmp1 <0){
 			perror( strerror(errno) );
-			printf("msgrcv failed, rc=%d\n", rc);
+			printf("msgrcv failed, rc=%d\n", tmp1);
 			return 1;
 		}
 		// Send msg to server and recv response ,sg
@@ -121,7 +122,7 @@ int main(int argc, char *argv[])
 		tmp1 = msgsnd(msgqid,&msg,sizeof(msg.mtext),0);
 		if(tmp1 <0){
 			perror( strerror(errno) );
-			printf("msgrcv failed, rc=%d\n", rc);
+			printf("msgrcv failed, rc=%d\n", tmp1);
 			return 1;
 		}
 	}	
