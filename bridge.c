@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
 	int msgqid , tmp1,tmp2 , length , infd ,wd ,flag;
 	struct inotify_event* event;
 	char readBuf[EVENT_BUF_LEN];
-	msgqid = msgget(5566,0600|IPC_CREAT); // Shall we add IPC_EXCL?
+	msgqid = msgget(MAGIC,0); // Shall we add IPC_EXCL?
 	tmp1 = -1;
 	tmp2 = -1;
 	while(1){
@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
 		tmp1 = msgrcv(msgqid,&msg,sizeof(msg.mtext),0,0);
 		if(tmp1 <0){
 			perror( strerror(errno) );
-			printf("msgrcv failed, rc=%d\n", rc);
+			printf("msgrcv failed, rc=%d\n", tmp1);
 			return 1;
 		}
 		// Send msg to server and recv response ,sg
@@ -121,7 +121,7 @@ int main(int argc, char *argv[])
 		tmp1 = msgsnd(msgqid,&msg,sizeof(msg.mtext),0);
 		if(tmp1 <0){
 			perror( strerror(errno) );
-			printf("msgrcv failed, rc=%d\n", rc);
+			printf("msgrcv failed, rc=%d\n", tmp1);
 			return 1;
 		}
 	}	

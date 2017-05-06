@@ -14,7 +14,7 @@ int main(int argc,char** argv){
 	int msgqid, rc;
 	struct msg_buf msg;
 
-	msgqid = msgget(MAGIC, IPC_CREAT|MSGPERM);
+	msgqid = msggetmsgget(5566, MSGPERM|IPC_CREAT|IPC_EXCL);
 	if (msgqid < 0) {
 		perror(strerror(errno));
 		printf("failed to create message queue with msgqid = %d\n", msgqid);
