@@ -35,8 +35,8 @@ int main(int argc, char *argv[])
 	}
 	if(!strstr(argv[2],"mnt"){
 		printf("the second argument need to be the mnt directory of container B(server)\n";
-	return 1;
-}
+		return 1;
+	}
 
 	if(!setns(open(argv[1],O_RDONLY),CLONE_NEWIPC)){
 		printf("setns with client fail\n");
@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
 
 
 	struct msg_buf msg;
-	int msgqid , tmp1,tmp2 , length , infd ,wd;
+	int msgqid , tmp1,tmp2 , length , infd ,wd ,flag;
 	struct inotify_event* event;
 	char readBuf[EVENT_BUF_LEN];
 	msgqid = msgget(5566,0600|IPC_CREAT); // Shall we add IPC_EXCL?
@@ -64,6 +64,10 @@ int main(int argc, char *argv[])
 			return 1;
 		}
 		// Send msg to server and recv response ,sg
+
+		FILE* fp = fopen("/tmp/bridge_msg","w");
+		fwrite(msg.mtext,sizeof(char),sizeof(msg.mtext),fp);
+		fclose(fp);
 		
 		infd = inotify_init();
 		if(infd<0){
@@ -79,6 +83,9 @@ int main(int argc, char *argv[])
 			return 1;
 		}
 	
+
+		flag = 0;
+
 		while(1){
 			length = read(infd,readBuf,EVENT_BUF_LEN);
 			if(length <0){
@@ -89,12 +96,25 @@ int main(int argc, char *argv[])
 			int i = 0;
 			while(i<length){
 				event = (struct inotify_event*) readBuf;
-				if(event->mask | IN_CLOSE_WRITE && !strcmp(event->name,"mmsg")){
-				
+				if(event->mask | IN_CLOSE_WRITE && !strcmp(event->name,"server_msg")){
+					FILE* fp = fopen("/tmp/mmsg","r");
+					char c,temp;
+					char cBuf[50000];
+					temp = 0;
+					while( (c = fgetc(fp))!=EOF){
+						cBuf[temp++] = c;
+					}
+					cBuf[temp] = EOF;
+					strcpy(msg.mtext,cBuf);
+					system("rm -f /tmp/mmsg");
+					flag = 1;
+					break;
 				}	
-
+				i += event->len + EVENT_SIZE;
 			}
-			
+			if(flag){
+				break;
+			}
 
 		}
 
