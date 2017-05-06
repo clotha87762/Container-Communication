@@ -11,7 +11,6 @@
 #include <sys/wait.h>
 #include <sys/errno.h>
 #include <errno.h>
-#include <limit.h>
 #include <sys/inotify.h>
 
 #define N_NS 3
@@ -33,8 +32,8 @@ int main(int argc, char *argv[])
 		printf("the first argument need to be the ipc ns directory of container A(client)\n");
 		return 1;
 	}
-	if(!strstr(argv[2],"mnt"){
-		printf("the second argument need to be the mnt directory of container B(server)\n";
+	if(!strstr(argv[2],"mnt")){
+		printf("the second argument need to be the mnt directory of container B(server)\n");
 		return 1;
 	}
 
