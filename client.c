@@ -7,6 +7,7 @@
 #include<sys/wait.h>
 #include<sys/errno.h>
 #include<errno.h>
+#include"msghelp.h"
 
 int main(int argc,char** argv){
 
