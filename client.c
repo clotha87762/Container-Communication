@@ -9,12 +9,12 @@
 #include<errno.h>
 #include"msghelp.h"
 
-int main(int argc,char** argv){
+int main(int argc,char* argv[]){
 
 	int msgqid, rc;
 	struct msg_buf msg;
 
-	msgqid = msggetmsgget(5566, MSGPERM|IPC_CREAT|IPC_EXCL);
+	msgqid = msgget(5566,MSGPERM|IPC_EXCL|IPC_CREAT);
 	if (msgqid < 0) {
 		perror(strerror(errno));
 		printf("failed to create message queue with msgqid = %d\n", msgqid);

@@ -37,11 +37,11 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	if(!setns(open(argv[1],O_RDONLY),CLONE_NEWIPC)){
+	if(setns(open(argv[1],O_RDONLY),CLONE_NEWIPC)){
 		printf("setns with client fail\n");
 		return 1;
 	}
-	if(!setns(open(argv[2],O_RDONLY),CLONE_NEWNS)){
+	if(setns(open(argv[2],O_RDONLY),CLONE_NEWNS)){
 		printf("setns with server fail\n");
 		return 1;
 	}
@@ -51,9 +51,8 @@ int main(int argc, char *argv[])
 	int msgqid , tmp1,tmp2 , length , infd ,wd ,flag;
 	struct inotify_event* event;
 	char readBuf[EVENT_BUF_LEN];
-	msgqid = msgget(MAGIC,0); // Shall we add IPC_EXCL?
-	tmp1 = -1;
-	tmp2 = -1;
+	msgqid = msgget(5566,MSGPERM|IPC_CREAT); // Shall we add IPC_EXCL?
+	
 	printf("aaa\n");
 	while(1){
 		
@@ -64,19 +63,23 @@ int main(int argc, char *argv[])
 			return 1;
 		}
 		// Send msg to server and recv response ,sg
-
-		FILE* fp = fopen("/tmp/bridge_msg","w");
-		fwrite(msg.mtext,sizeof(char),sizeof(msg.mtext),fp);
+		printf("bbb %s\n",msg.mtext);
+		printf("qwe  %s\n",getcwd(NULL,0));
+		FILE* fp = fopen("bridge_msg","w");
+		printf("ccc\n");
+		//fwrite(&msg.mtext[0],sizeof(char),sizeof(msg.mtext),fp);
+		fprintf(fp,"%s",msg.mtext);
+		printf("c22\n");
 		fclose(fp);
-		
+		printf("ddd\n");
 		infd = inotify_init();
 		if(infd<0){
 			perror(strerror(errno));
 			printf("inotifyFd\n");
 			return 1;
 		}
-		wd = inotify_add_watch(infd,"/tmp/",IN_CLOSE_WRITE);
-		
+		wd = inotify_add_watch(infd,getcwd(NULL,0),IN_CLOSE_WRITE);
+		printf("eee\n");
 		if (wd == -1) {
 			perror(strerror(errno));
 			printf("inotify_add_watch\n");
@@ -97,7 +100,7 @@ int main(int argc, char *argv[])
 			while(i<length){
 				event = (struct inotify_event*) readBuf;
 				if(event->mask | IN_CLOSE_WRITE && !strcmp(event->name,"server_msg")){
-					FILE* fp = fopen("/tmp/mmsg","r");
+					FILE* fp = fopen("server_msg","r");
 					char c,temp;
 					char cBuf[50000];
 					temp = 0;

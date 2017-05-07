@@ -16,8 +16,9 @@ int main(int argc, char *argv[])
 	char readBuf[50000];
 	char msg[50000];
 	infd = inotify_init();
-	wd = inotify_add_watch(infd,"/tmp/",IN_CLOSE_WRITE);
+	wd = inotify_add_watch(infd,getcwd(NULL,0),IN_CLOSE_WRITE);
 	i = 0;
+	printf("aaaa\n");
 	while(1){
 		length = read(infd,readBuf,EVENT_BUF_LEN);
 		if(length<=0){
@@ -25,10 +26,11 @@ int main(int argc, char *argv[])
 				printf("inotify read error\n");
 				return 1;
 		}
+		printf("bbbb\n");
 		while(i<length){
 			event = (struct inotify_event* ) readBuf;
 			if(event->len&&event->mask|IN_CLOSE_WRITE&&!strcmp(event->name,"bridge_msg")){
-				FILE* fp = fopen("/tmp/bridge_msg","r");
+				FILE* fp = fopen("bridge_msg","r");
 				char c;
 				int temp;
 				temp = 0;
@@ -41,8 +43,11 @@ int main(int argc, char *argv[])
 			}
 			i += EVENT_SIZE + event->len;
 		}
-		
-
+		printf("cccc\n");
+	        FILE* response = fopen("server_msg","w");
+		fputs(msg,response);
+		fclose(response);
+		length = -1;
 	}
 
 	return 0;
