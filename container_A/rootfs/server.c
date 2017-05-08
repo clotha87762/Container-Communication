@@ -15,39 +15,43 @@ int main(int argc, char *argv[])
 	int infd,i,j,wd,length;
 	char readBuf[50000];
 	char msg[50000];
+	system("rm -f /msg/server_msg");
+	system("rm -f /msg/bridge_msg");
 	infd = inotify_init();
-	wd = inotify_add_watch(infd,getcwd(NULL,0),IN_CLOSE_WRITE);
+	wd = inotify_add_watch(infd,"/msg/",IN_CLOSE_WRITE);
 	i = 0;
-	printf("aaaa\n");
+	//printf("aaaa\n");
 	while(1){
+		i=0;
 		length = read(infd,readBuf,EVENT_BUF_LEN);
 		if(length<=0){
 				perror(strerror(errno));
 				printf("inotify read error\n");
 				return 1;
 		}
-		printf("bbbb\n");
+		//printf("bbbb\n");
 		while(i<length){
 			event = (struct inotify_event* ) readBuf;
 			if(event->len&&event->mask|IN_CLOSE_WRITE&&!strcmp(event->name,"bridge_msg")){
-				FILE* fp = fopen("bridge_msg","r");
+				FILE* fp = fopen("/msg/bridge_msg","r");
 				char c;
 				int temp;
 				temp = 0;
 				while((c=fgetc(fp))!=EOF){
 					msg[temp++] = c;
 				}
-				msg[temp] = EOF;
-				system("rm -f /tmp/bridge_msg");
+				msg[temp] = '\0';
+				printf("recv from bridge:%s",msg);
+				system("rm -f /msg/bridge_msg");
+				FILE* response = fopen("/msg/server_msg","w");
+				fputs(msg,response);
+				fclose(response);
 				break;
 			}
 			i += EVENT_SIZE + event->len;
 		}
-		printf("cccc\n");
-	        FILE* response = fopen("server_msg","w");
-		fputs(msg,response);
-		fclose(response);
-		length = -1;
+		
+		
 	}
 
 	return 0;
