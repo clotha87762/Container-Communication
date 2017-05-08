@@ -12,10 +12,11 @@
 #include <sys/errno.h>
 #include <errno.h>
 #include <sys/inotify.h>
+#include <limits.h>
 
 #define N_NS 3
 #define EVENT_SIZE  ( sizeof (struct inotify_event) )
-#define EVENT_BUF_LEN     ( 1024 * ( EVENT_SIZE + 16 ) )
+#define EVENT_BUF_LEN     (10 * (sizeof(struct inotify_event) + NAME_MAX + 1))
 char *ns_substr[N_NS] = {"net", "mnt", "ipc"};
 int ns[N_NS] = {CLONE_NEWNET, CLONE_NEWNS, CLONE_NEWIPC};
 
@@ -111,7 +112,7 @@ int main(int argc, char *argv[])
                         printf("inotifyFd\n");
                         return 1;
                 }
-                wd = inotify_add_watch(infd,"/msg/",IN_CLOSE_WRITE);
+                wd = inotify_add_watch(infd,"/msg/",IN_DELETE);
 
                 if (wd == -1) {
                         perror(strerror(errno));
@@ -130,7 +131,7 @@ int main(int argc, char *argv[])
 		if(tmp1 <0){
 			perror( strerror(errno) );
 			printf("msgrcv failed, rc=%d\n", tmp1);
-			return 1;
+		;	return 1;
 		}
 		// Send msg to server and recv response ,sg
 		printf("recv from client:%s",msg.mtext);
@@ -140,7 +141,8 @@ int main(int argc, char *argv[])
 
 	
 
-		 FILE* fp = fopen("/msg/bridge_msg","w");
+		 FILE* fp;
+		 fp = fopen("/msg/bridge_msg","w");
 
                 //fwrite(&msg.mtext[0],sizeof(char),sizeof(msg.mtext),fp);
                 fprintf(fp,"%s",msg.mtext);
@@ -148,8 +150,8 @@ int main(int argc, char *argv[])
 
 		
 	
-
-		flag = 0;
+		char * p;
+		//flag = 0;
 		//printf("oao\n");
 		while(1){
 			length = read(infd,readBuf,EVENT_BUF_LEN);
@@ -160,33 +162,41 @@ int main(int argc, char *argv[])
 			}
 			int i;
 			i=0;
-			while(i<length){
+			p = readBuf;
+			flag = 0;
+			while(p < length + readBuf){
 				event = (struct inotify_event*) readBuf;
-				if(event->mask | IN_CLOSE_WRITE && !strcmp(event->name,"server_msg")){
-					FILE* fp = fopen("/msg/server_msg","r");
+				if(event->mask | IN_DELETE && !strcmp(event->name,"bridge_msg") && event->len){
+					//printf("notice\n");
+					FILE*  qq= fopen("/msg/server_msg","r");
 					char c,temp;
 					char cBuf[50000];
 					temp = 0;
-					while( (c = fgetc(fp))!=EOF){
+					while( (c = fgetc(qq))!=EOF){
 						cBuf[temp++] = c;
 					}
 					
 					cBuf[temp] = '\0';
-					
+					 
 					strcpy(msg.mtext,cBuf);
 					strcpy(test,cBuf);		
-					system("rm -f /msg/server_msg");
+
+					printf("recv from server:%s",test);
+					
+					//system("rm -f /msg/server_msg");
 					flag = 1;
 					break;
 				}	
-				i += event->len + EVENT_SIZE;
+				p += event->len + EVENT_SIZE;
 			}
 			if(flag){
 				break;
 			}
 
 		}
-		printf("recv from server:%s",test);
+		//printf("recv from server:%s",test);
+		
+		//system("rm -f /msg/bridge_msg");		
 		tmp1 = msgsnd(msgqid2,&msg,sizeof(msg.mtext),0);
 		if(tmp1 <0){
 			perror( strerror(errno) );

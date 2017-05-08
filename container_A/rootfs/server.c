@@ -30,7 +30,9 @@ int main(int argc, char *argv[])
 				return 1;
 		}
 		//printf("bbbb\n");
-		while(i<length){
+		char* p;
+		p = readBuf;
+		while(p<readBuf+length){
 			event = (struct inotify_event* ) readBuf;
 			if(event->len&&event->mask|IN_CLOSE_WRITE&&!strcmp(event->name,"bridge_msg")){
 				FILE* fp = fopen("/msg/bridge_msg","r");
@@ -42,13 +44,15 @@ int main(int argc, char *argv[])
 				}
 				msg[temp] = '\0';
 				printf("recv from bridge:%s",msg);
-				system("rm -f /msg/bridge_msg");
+			
+				//system("rm -f /msg/bridge_msg");
 				FILE* response = fopen("/msg/server_msg","w");
-				fputs(msg,response);
+				fprintf(response,"%s",msg);
 				fclose(response);
+				system("rm -f /msg/bridge_msg");
 				break;
 			}
-			i += EVENT_SIZE + event->len;
+			p += EVENT_SIZE + event->len;
 		}
 		
 		
