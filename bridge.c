@@ -46,26 +46,26 @@ int main(int argc, char *argv[])
 	}
 	}
 	else{
-		printf("111\n");
+		//printf("111\n");
 		char pid_name[100];
 		FILE* pid = fopen("./pid_file/b.pid","r");
 		fgets(pid_name,100,pid);
 		char pathB[500] = "/proc/";
 		strcat(pathB,pid_name);
 		strcat(pathB,"/ns/ipc");
-		printf("222 %s\n",pathB);
+		//printf("222 %s\n",pathB);
 		if(setns(open(pathB,O_RDONLY),CLONE_NEWIPC)){
                 	printf("setns with client fail\n");
                 	return 1;
         	}
-		printf("333\n");
+		//printf("333\n");
 		fclose(pid);
 		pid = fopen("./pid_file/a.pid","r");
 		fgets(pid_name,100,pid);
 		char pathA[500] = "/proc/";
 		strcat(pathA,pid_name);
 		strcat(pathA,"/ns/mnt");
-		printf("444 %s\n",pathA);
+		//printf("444 %s\n",pathA);
         	if(setns(open(pathA,O_RDONLY),CLONE_NEWNS)){
                 	printf("setns with server fail\n");
                 	return 1;
